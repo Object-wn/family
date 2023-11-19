@@ -39,7 +39,7 @@ typedef struct receive
        long type;//从消息队列接收消息时用于判断的消息类型
         long date[_EXTRACT_STR_LEN];
 }REC;
-static REC *re_ex2;
+static REC re_ex2;
 REC re_ex;//放到消息队列的数据
 //节点-主机收发数据结构
 static  char imx_node[_NODE_HOST];
@@ -55,7 +55,7 @@ msgsnd要求发送的数据结构要是长整型
 struct msg
 {
 	long type;//从消息队列接收消息时用于判断的消息类型
-	long msgtype;//具体的消息类型
+	//long msgtype;//具体的消息类型
 	unsigned char text[_HOST_SERVER];//消息正文
 };
 

@@ -57,7 +57,7 @@ void *pthread_sen()
         printf("get mutex_host lock\n");
         printf("receive p_extrac OK\n");
 
-        if(msgsnd(r_msgid,&re_sock,sizeof(re_sock) - sizeof(long),0) == -1){
+        if(msgrcv(r_msgid,&re_sock,sizeof(re_sock) - sizeof(long),0, 0) == -1){
 		perror("fail to msgsnd type2");
 		//exit(1);
 	}
@@ -91,24 +91,22 @@ void *pthread_sen()
 #define _DATE3 4
 #define _DATE4 5
 
-struct msg msgbuf;
+struct msg msgbuf2;
 
 void  *pthread_extract()
 {
     id_r_dispose = pthread_self();
-    REC re_ex;//放到消息队列的数据
+    //REC re_ex;//放到消息队列的数据
     printf("PX_OK\n");
-
-
-//获取消息队键值用来发送
-    if (0 > (d_key = ftok("/tmp", 'g')))
+ //获取消息队键值用来发送
+    if (0 > (d_key = ftok("/tmp", 'h')))
     {
         perror("ftok error");
         return;
     }
 
     //创建消息队列， 不存在则创建否则打开操作 | 不存在创建 否则产生错误返回
-    if (-1 == (d_msgid = msgget(d_key, IPC_CREAT | IPC_EXCL | 0666))  )
+    if (-1 == (d_msgid = msgget(d_key, IPC_CREAT | IPC_EXCL | S_IRUSR|S_IWUSR))  )
     {
         //判断是否因队列存在而无法创建
         if (EEXIST == errno)
@@ -121,15 +119,13 @@ void  *pthread_extract()
             return;
         }
         //消息队列创建成功
-        printf("message queue OK!\n");
+        printf("message queue OK!-^^^^^^^^^^^^^^^^^^d_msgid2:%d\n", d_msgid);
     }
-        
-
     while (1)
     {
-        printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
-        msgsnd(r_msgid, &msgbuf, sizeof(msgbuf) - sizeof(long), 0);
-        printf("read lock\n");
+        
+        // msgsnd(r_msgid, &msgbuf, sizeof(msgbuf) - sizeof(long), 0);
+        // printf("read lock\n");
         /****************************
         有可能这里出错    阻塞等待兄弟进程放锁
         ***************************/
@@ -142,26 +138,28 @@ void  *pthread_extract()
         printf("get mutex_node lock2\n");
         printf("receive d_msgid OK\n");
         //清零imx_host2空间
-        bzero(msgbuf.text, sizeof(msgbuf.text) - 1);
+        bzero(msgbuf2.text, sizeof(msgbuf2.text) - 1);
         printf("wait form fork_dispose--\n");
-
+        sleep(1);
         //从消息队列获取消息 获取消息队列第一条类型为long的数据
-        msgrcv(d_msgid, &msgbuf, sizeof(msgbuf) - 1 - sizeof(long), 1L, 0);
+        printf("=+++==+=+++++++=======%d\n", d_msgid);
+        msgrcv(d_msgid, &msgbuf2,_EXTRACT_STR_LEN , 1L, IPC_NOWAIT);
         //放到结构体
-        re_ex.type = msgbuf.text[_TYPE];
-        //从数组提取到结构体
-        /**********************
-         * 下边那个发送也会使用结构体，但是结构体已经被锁住了，所以下边那个发送很有可能会出问题 在此标记
-         * ***********************/
-        re_ex.date[_DATE1 - _DATE_HEAD] = msgbuf.text[_DATE1];
-        re_ex.date[_DATE2 - _DATE_HEAD] = msgbuf.text[_DATE2];
-        re_ex.date[_DATE3 - _DATE_HEAD] = msgbuf.text[_DATE3];
-        re_ex.date[_DATE4 - _DATE_HEAD] = msgbuf.text[_DATE4];
-
+        // re_ex.type = msgbuf.text[_TYPE];
+        // //从数组提取到结构体
+        // /**********************
+        //  * 下边那个发送也会使用结构体，但是结构体已经被锁住了，所以下边那个发送很有可能会出问题 在此标记
+        //  * ***********************/
+        // re_ex.date[_DATE1 - _DATE_HEAD] = msgbuf.text[_DATE1];
+        // re_ex.date[_DATE2 - _DATE_HEAD] = msgbuf.text[_DATE2];
+        // re_ex.date[_DATE3 - _DATE_HEAD] = msgbuf.text[_DATE3];
+        // re_ex.date[_DATE4 - _DATE_HEAD] = msgbuf.text[_DATE4];
+        
         //pthread_cond_signal(&cond_node);
         //解锁 对应pthread_cond_wait
         //pthread_mutex_unlock(&mutex_node);
         //printf("free mutex_node2\n");
+        printf("re_ex:%s\n", msgbuf2.text);
         
 
        
@@ -176,30 +174,49 @@ void  *pthread_extract()
         printf("set mutex_host lock OK!\n");
 
         //把消息添加到消息队列中
-        re_ex.type = 1L;
-	    if(msgsnd(r_msgid, &re_ex, sizeof(re_ex), 0) == -1)
+        re_ex2.type = 1L;
+	    if(msgsnd(r_msgid,&re_ex2, sizeof(re_ex), 0) == -1)
         {
 		    perror("fail to msgsnd type2");
 		   // return 6;
 	    }
-
+pthread_cond_signal(&cond_host);
         //解锁  线程间共享内存
         pthread_mutex_unlock(&mutex_host);
-        pthread_cond_signal(&cond_host);
+        printf("free lock2\n");
+        
 
 
     }
 }
 
-void *pthr()
-{
-    while(1)
-    printf("in pthr\n");
-}
 
 //进程服务函数
 void fork_sen()
 {
+    if (0 > (e_key = ftok("/home", 'a')))
+    {
+        perror("ftok error");
+        return;
+    }
+
+    //创建消息队列， 不存在则创建否则打开操作 | 不存在创建 否则产生错误返回
+    if (-1 == (r_msgid = msgget(e_key, IPC_CREAT | IPC_EXCL | 0666))  )
+    {
+        //判断是否因队列存在而无法创建
+        if (EEXIST == errno)
+        {
+            r_msgid = msgget(e_key, 0777);
+        }
+        else
+        {
+            perror("fork_dis > message > magget error");
+            return;
+        }
+        //消息队列创建成功
+        printf("message queue OK!2222    d_msgid-----%d\n", r_msgid);
+    }
+
     printf("input sen OK\n");
     pid_receive = getpid();
     u8 R = 0;
