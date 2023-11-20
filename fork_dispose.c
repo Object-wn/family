@@ -59,7 +59,7 @@ void fork_receive()
         //消息队列创建成功
         printf("message queue OK!<<<<<<<<<<<<<<<<<<<<<<<<<d_msgid1:%d\n", d_msgid);
     }
-    printf("input receive OK\n");
+    //printf("input receive OK\n");
     pid_dispose = getpid();
     while (1)
     {
@@ -74,18 +74,18 @@ void fork_receive()
     //Usart_main_error = Usart_main(3, &ARGV);
 
 
-    // if (0 != (Usart_main_error = Usart_main(3, &ARGV)) ) //imx_host[_NODE_HOST];数组中已经有数据了
-    // {
-    //     fprintf(stderr, "Usart_main error:%d\n", Usart_main_error);
-    //     //返回错误，代码另设意思
-    //     //return ;
-    // }
+    if (0 != (Usart_main_error = Usart_main(3, &ARGV)) ) //imx_host[_NODE_HOST];数组中已经有数据了
+    {
+        fprintf(stderr, "Usart_main error:%d\n", Usart_main_error);
+        //返回错误，代码另设意思
+        //return ;
+    }
     //写入消息队列
     // if (imx_host[1] != 0)
     // {
         //msgbuf.text[0] = '$';
         printf("------------%s======%d\n", msgbuf.text, d_msgid);
-        message_queue_error = message_queue();
+       //message_queue_error = message_queue();
        // bzero(msgbuf.text, sizeof(msgbuf.text));
     // }
     if (0 != (message_queue_error = message_queue()))
@@ -94,8 +94,8 @@ void fork_receive()
         //返回错误，返回值另设意思
         //return ;
     }
-    printf("OKOKOKOKOKO\n");
-    sleep(1);
+    //printf("OKOKOKOKOKO\n");
+    //sleep(1);
     //sleep(1);
     //pthread_cond_signal(&cond_node);
     //解锁 对应pthread_cond_wait
@@ -120,7 +120,7 @@ void fork_receive()
     //     perror("ftok error");
     //     return 1;
     // }
-    printf("in message_queue\n");
+    //printf("in message_queue\n");
     
         //添加数据到消息队列中
         msgbuf.type = 1L;

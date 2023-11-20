@@ -80,7 +80,8 @@ void *pthread_sen()
 #include <pthread.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
-
+#include <sys/stat.h>
+#include <fcntl.h>
 
 //imx_host数组中 标志位的下标
 #define _TYPE 1
@@ -95,8 +96,17 @@ struct msg msgbuf2;
 
 void  *pthread_extract()
 {
+
+    int fd;
+    if (-1 == (fd = open("./t.txt", O_RDWR|O_CREAT,0600)))
+    {
+        perror("open error");
+        exit(-1);
+    }
+
+
     id_r_dispose = pthread_self();
-    //REC re_ex;//放到消息队列的数据
+    REC re_ex;//放到消息队列的数据
     printf("PX_OK\n");
  //获取消息队键值用来发送
     if (0 > (d_key = ftok("/tmp", 'h')))
@@ -140,26 +150,27 @@ void  *pthread_extract()
         //清零imx_host2空间
         bzero(msgbuf2.text, sizeof(msgbuf2.text) - 1);
         printf("wait form fork_dispose--\n");
-        sleep(1);
+        //sleep(1);
         //从消息队列获取消息 获取消息队列第一条类型为long的数据
         printf("=+++==+=+++++++=======%d\n", d_msgid);
-        msgrcv(d_msgid, &msgbuf2,_EXTRACT_STR_LEN , 1L, IPC_NOWAIT);
+        msgrcv(d_msgid, &msgbuf2,_EXTRACT_STR_LEN , 1L, 0);
         //放到结构体
-        // re_ex.type = msgbuf.text[_TYPE];
-        // //从数组提取到结构体
-        // /**********************
-        //  * 下边那个发送也会使用结构体，但是结构体已经被锁住了，所以下边那个发送很有可能会出问题 在此标记
-        //  * ***********************/
-        // re_ex.date[_DATE1 - _DATE_HEAD] = msgbuf.text[_DATE1];
-        // re_ex.date[_DATE2 - _DATE_HEAD] = msgbuf.text[_DATE2];
-        // re_ex.date[_DATE3 - _DATE_HEAD] = msgbuf.text[_DATE3];
-        // re_ex.date[_DATE4 - _DATE_HEAD] = msgbuf.text[_DATE4];
-        
+        //re_ex.type = msgbuf2.text[_TYPE];
+        //从数组提取到结构体
+        /**********************
+         * 下边那个发送也会使用结构体，但是结构体已经被锁住了，所以下边那个发送很有可能会出问题 在此标记
+         * ***********************/
+        // re_ex.date[_DATE1 - _DATE_HEAD] = msgbuf2.text[_DATE1];
+        // re_ex.date[_DATE2 - _DATE_HEAD] = msgbuf2.text[_DATE2];
+        // re_ex.date[_DATE3 - _DATE_HEAD] = msgbuf2.text[_DATE3];
+        // re_ex.date[_DATE4 - _DATE_HEAD] = msgbuf2.text[_DATE4];
+        write(fd, msgbuf2.text, sizeof(msgbuf2.text) / sizeof(msgbuf2.text[0]));
+        printf("re_ex~~~~~~~~~~~~~~~~~~~~~~~~~~~%s\n", re_ex);
         //pthread_cond_signal(&cond_node);
         //解锁 对应pthread_cond_wait
         //pthread_mutex_unlock(&mutex_node);
         //printf("free mutex_node2\n");
-        printf("re_ex:%s\n", msgbuf2.text);
+        //printf("re_ex:%s\n", msgbuf2.text);
         
 
        

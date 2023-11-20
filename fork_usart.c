@@ -239,7 +239,7 @@ static void io_handler(int sig, siginfo_t *info, void *context)
         // for (n = 0; n < _NODE_HOST; n++)
         //     printf("%c   ", imx_host[n]);
         // printf("]\n");
-        printf("read Byte:%d\n", ret);
+        printf("read Byte:%d,  %s\n", ret, msgbuf.text);
         ret = 0;
     }
     //读取并放入完毕 解锁并唤醒下一个用锁的
@@ -333,7 +333,7 @@ int Usart_main()
     case 0:  //读串口数据
     //printf("usart========\n");
         async_io_init();	//我们使用异步I/O方式读取串口的数据，调用该函数去初始化串口的异步I/O
-        //getchar();
+        getchar();
         fflush(stdout);
         //getchar();
         //printf("usart+++++++++\n");
