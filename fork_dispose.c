@@ -60,6 +60,7 @@ void fork_receive()
         printf("message queue OK!<<<<<<<<<<<<<<<<<<<<<<<<<d_msgid1:%d\n", d_msgid);
     }
     //printf("input receive OK\n");
+
     pid_dispose = getpid();
     while (1)
     {
@@ -125,7 +126,8 @@ void fork_receive()
         //添加数据到消息队列中
         msgbuf.type = 1L;
         printf("msgsnd.......type: %d-- text:%s\n", msgbuf.type, msgbuf.text);
-        msgsnd(d_msgid, &msgbuf, _EXTRACT_STR_LEN, 0);
+        printf("str_Size: %d, %d\n", sizeof(msgbuf), sizeof(msgbuf.text));
+        msgsnd(d_msgid, &msgbuf, 20, 0);
         // if (msgsnd(d_msgid, &msgbuf, sizeof(msgbuf) - sizeof(long), 0) == -1)
         // {
         //     printf("msgid:%d\n", d_msgid);

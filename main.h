@@ -36,7 +36,7 @@ typedef unsigned int    u32;
 //提取线程和发送线程--服务器
 typedef struct receive
 {
-       long type;//从消息队列接收消息时用于判断的消息类型
+       char type;//从消息队列接收消息时用于判断的消息类型
         long date[_EXTRACT_STR_LEN];
 }REC;
 static REC re_ex2;
