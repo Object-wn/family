@@ -127,7 +127,7 @@ void fork_receive()
         msgbuf.type = 1L;
         printf("msgsnd.......type: %d-- text:%s\n", msgbuf.type, msgbuf.text);
         printf("str_Size: %d, %d\n", sizeof(msgbuf), sizeof(msgbuf.text));
-        msgsnd(d_msgid, &msgbuf, 20, 0);
+        msgsnd(d_msgid, &msgbuf, _NODE_HOST, 0);
         // if (msgsnd(d_msgid, &msgbuf, sizeof(msgbuf) - sizeof(long), 0) == -1)
         // {
         //     printf("msgid:%d\n", d_msgid);

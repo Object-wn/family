@@ -28,7 +28,7 @@ typedef unsigned int    u32;
 #define _HOST_SERVER 5
 #define _NODE_HOST 8
 #define _MSG_LEN _NODE_HOST*6
-#define _EXTRACT_STR_LEN 4
+#define _EXTRACT_STR_LEN 5
 
 //数据位是从第几位开始的
 #define _DATE_HEAD 2
@@ -36,10 +36,11 @@ typedef unsigned int    u32;
 //提取线程和发送线程--服务器
 typedef struct receive
 {
-       char type;//从消息队列接收消息时用于判断的消息类型
-        long date[_EXTRACT_STR_LEN];
+      char type;//从消息队列接收消息时用于判断的消息类型
+      // char F_type;
+      int date[_EXTRACT_STR_LEN];
 }REC;
-static REC re_ex2;
+REC re_ex2;
 REC re_ex;//放到消息队列的数据
 //节点-主机收发数据结构
 static  char imx_node[_NODE_HOST];
@@ -56,7 +57,7 @@ struct msg
 {
 	long type;//从消息队列接收消息时用于判断的消息类型
 	//long msgtype;//具体的消息类型
-	unsigned char text[_HOST_SERVER];//消息正文
+	char text[_HOST_SERVER];//消息正文
 };
 
    

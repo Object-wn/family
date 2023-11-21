@@ -48,32 +48,6 @@ int main(int argc, char *argv[])
     //pthread_cond_init(&cond_server, NULL);
     printf("pthread_cond_init\n");
 
-    //获取唯一键值
-    
-//获取消息队键值用来发送
-    if (0 > (d_key = ftok("/tmp", 'g')))
-    {
-        perror("ftok error");
-        return 1;
-    }
-
-    //创建消息队列， 不存在则创建否则打开操作 | 不存在创建 否则产生错误返回
-    if (-1 == (d_msgid = msgget(d_key, IPC_CREAT | IPC_EXCL | 0666))  )
-    {
-        //判断是否因队列存在而无法创建
-        if (EEXIST == errno)
-        {
-            d_msgid = msgget(d_key, 0777);
-        }
-        else
-        {
-            perror("fork_dis > message > magget error");
-            return 2;
-        }
-        //消息队列创建成功
-        printf("message queue OK!\n");
-    }
-
     //创建子进程，处理提取
     if ((pid_dispose = fork()) < 0)
     {
@@ -83,6 +57,7 @@ int main(int argc, char *argv[])
     else if (0 == pid_dispose) //子进程
         {
             printf("-----------------------------fork_receive OK PID:%d\n", getpid());
+            signal(SIGINT, quite);
             prctl(PR_SET_PDEATHSIG,SIGKILL);
             fork_receive(); //接收
             printf("fork_receive OK2\n");
@@ -90,6 +65,7 @@ int main(int argc, char *argv[])
         else //父进程
         {
             printf("--------------------------------fork_sen OKPID:%d\n", getpid());
+            signal(SIGINT, quite);
             //while(1)
             fork_sen(); //提取-发送
             printf("fork_sen OK2\n");
@@ -122,8 +98,8 @@ void quite()
     //kill(pid_dispose, );
 
     //删除删除信号量
-    semctl(d_msgid, 1, IPC_RMID, NULL);
-    semctl(r_msgid, 1, IPC_RMID, NULL);
+    semctl(d_msgid, 1, IPC_RMID);
+    semctl(r_msgid, 1, IPC_RMID);
 
     printf("exit\n");
     exit(0);
