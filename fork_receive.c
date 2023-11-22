@@ -10,33 +10,26 @@
             线程二负责发送到服务器
                 
 */
-
+#define _XOPEN_SOURCE 500
 #include <stdio.h>
 #include <stdlib.h>
 #include "main.h"
 #include <errno.h>
 #include <pthread.h>
-
-#include <stdio.h>
-#include <stdlib.h>
-#include "main.h"
 #include <sys/types.h>          /* See NOTES */
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sys/ipc.h>
 #include <sys/msg.h>
-
-#define _XOPEN_SOURCE 500
 #include <string.h>
-#include <sys/types.h>
 #include <sys/shm.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <sys/socket.h>
 
-int fd;
-static  int sockfd;
-static  struct sockaddr_in str_server;
+#define _IP_SER "192.168.31.225"
+#define _PORT "10000"
 
 //接收兄弟线程的消息队列
 //设置套接字 把接收的信息发送给服务器
@@ -44,11 +37,12 @@ static  struct sockaddr_in str_server;
 //r_msgid 消息队列键值
 void *pthread_sen()
 {
-// if (-1 == (fd = open("./t.txt", O_RDWR|O_CREAT,0600)))
-//     {
-//         perror("open error");
-//         exit(-1);
-//     }
+    char *M_argv[] = {"192.168.31.225", "10000"};
+    const char *M_IP = "192.168.31.225";
+    const char *M_PORT = "10000";
+    //socker套接字
+    int sockfd;
+    struct sockaddr_in serveraddr;
     FILE *fd;
     if ((fd = fopen("./t.txt", "wb")) == NULL)
     {
@@ -59,6 +53,22 @@ void *pthread_sen()
     {
         perror("ftok error");
         return;
+    }
+     //打开套接字
+    if (0 > (sockfd = socket(AF_INET, SOCK_STREAM, 0)))
+    {
+        perror("socker error");
+        return ;
+    }
+    serveraddr.sin_family = AF_INET;
+    serveraddr.sin_addr.s_addr = inet_addr(M_IP);
+    serveraddr.sin_port = htons(atoi(M_PORT));
+
+    //连接服务器
+    if (connect(sockfd, (struct sockaddr*)&serveraddr, sizeof(serveraddr)) < 0)
+    {
+        perror("connect error");
+        return ;
     }
 
     //创建消息队列， 不存在则创建否则打开操作 | 不存在创建 否则产生错误返回
@@ -82,10 +92,6 @@ void *pthread_sen()
     while(1)
     {
     id_r_sen = pthread_self();
-    // if (server_sock() != 0)
-    // {
-
-    // }
 //sleep(1);
      //pthread_mutex_lock(&mutex_host);
         //printf("------------get mutex_node lock1\n");
@@ -98,10 +104,14 @@ void *pthread_sen()
         //msgrcv(d_msgid, &msgbuf2, _NODE_HOST , 1L, 0);
         msgrcv(r_msgid,&re_sock,20,1L, 0);
 
-    printf("sizeof: %d\n",sizeof(re_sock.date) );
-    fwrite(re_sock.date, sizeof(re_sock), 5, fd);
-    // fputc(ch, fd);
-      printf("```````type:%d, date:%d%d%d%d\n",  re_sock.date[0], re_sock.date[1], re_sock.date[2], re_sock.date[3], re_sock.date[4]);
+        pthread_mutex_lock(&mutex_host);
+        send(sockfd, &re_sock, sizeof(re_sock), 0);
+        printf("send date: ```````type:%d, date:%d%d%d%d\n",  re_sock.date[0], re_sock.date[1], re_sock.date[2], re_sock.date[3], re_sock.date[4]);
+        pthread_mutex_unlock(&mutex_host);
+        printf("sizeof: %d\n",sizeof(re_sock.date) );
+        fwrite(re_sock.date, sizeof(re_sock), 5, fd);
+        // fputc(ch, fd);
+        printf("```````type:%d, date:%d%d%d%d\n",  re_sock.date[0], re_sock.date[1], re_sock.date[2], re_sock.date[3], re_sock.date[4]);
         printf("-------------%d---------------\n", re_sock.date[1]);
         // pthread_mutex_lock(&mutex_host);
         // pthread_cond_wait(&cond_host, &mutex_host);

@@ -1,6 +1,6 @@
 /*
 @File Name: fork_dispose.c
-@Arouth: wn
+@Author: wn
 @Version: 1.0
 @Email: wn418@outlook.com
 @Creat Time: 2023.11.5  9:42
