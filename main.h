@@ -25,19 +25,24 @@ typedef unsigned int    u32;
         _NODE_HOST 主机buff大小
         _MSG_LEN 向服务器传输数据 节点数*6  6个字节
 */
-#define _HOST_SERVER 5
+#define _HOST_SERVER 6
 #define _NODE_HOST 8
 #define _MSG_LEN _NODE_HOST*6
-#define _EXTRACT_STR_LEN 5
+#define _EXTRACT_STR_LEN 5 //5位数据位
 
 //数据位是从第几位开始的
 #define _DATE_HEAD 2
+//标志位
+#define _FLAGE     1
+//符号位
+#define _SIGN_HEAD 0
+#define _SIGN_END  7
 
 //提取线程和发送线程--服务器
 typedef struct receive
 {
       char type;//从消息队列接收消息时用于判断的消息类型
-      // char F_type;
+      char F_type; //数据标志位
       int date[_EXTRACT_STR_LEN];
 }REC;
 REC re_ex2;
@@ -94,8 +99,6 @@ struct msg
 
 //socker信息
   REC re_sock;
-#define _IP_SOCK "8.130.71.224"
-#define _PORT_SOCK "10000"
 
 /***********************
  * 全局外部函数

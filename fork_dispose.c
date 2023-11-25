@@ -32,7 +32,7 @@ u8 message_queue_error;
 /*
 提取数据类型和数据内容
 放入imx_host[]
-@parameter: 节点-主机互斥锁
+@parameter: 节点-主机互斥锁   
 */
 void fork_receive()
 {
@@ -81,27 +81,16 @@ void fork_receive()
         //返回错误，代码另设意思
         //return ;
     }
-    //写入消息队列
-    // if (imx_host[1] != 0)
-    // {
-        //msgbuf.text[0] = '$';
-        printf("------------%s======%d\n", msgbuf.text, d_msgid);
-       //message_queue_error = message_queue();
-       // bzero(msgbuf.text, sizeof(msgbuf.text));
-    // }
+
+        printf("[fork_disopose] magbuf: %s\td_msgid: %d\n", msgbuf.text, d_msgid);
+
     if (0 != (message_queue_error = message_queue()))
     {
         fprintf(stderr, "message_queue error:%d\n", message_queue_error);
         //返回错误，返回值另设意思
         //return ;
     }
-    //printf("OKOKOKOKOKO\n");
-    //sleep(1);
-    //sleep(1);
-    //pthread_cond_signal(&cond_node);
-    //解锁 对应pthread_cond_wait
-    //pthread_mutex_unlock(&mutex_node);
-    //printf("free mutex_node1\n");
+
     
     }
 }
@@ -125,8 +114,8 @@ void fork_receive()
     
         //添加数据到消息队列中
         msgbuf.type = 1L;
-        printf("msgsnd.......type: %d-- text:%s\n", msgbuf.type, msgbuf.text);
-        printf("str_Size: %d, %d\n", sizeof(msgbuf), sizeof(msgbuf.text));
+        printf("[fork_disopose] msgsnd type: %d\ttext:%s\n", msgbuf.type, msgbuf.text);
+        printf("[fork_disopose] magbuf_Size: %d\ttext_size:%d\n", sizeof(msgbuf), sizeof(msgbuf.text));
         msgsnd(d_msgid, &msgbuf, _NODE_HOST, 0);
         // if (msgsnd(d_msgid, &msgbuf, sizeof(msgbuf) - sizeof(long), 0) == -1)
         // {

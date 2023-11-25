@@ -28,8 +28,8 @@
 #include <fcntl.h>
 #include <sys/socket.h>
 
-#define _IP_SER "192.168.31.225"
-#define _PORT "10000"
+// #define _IP_SER "43.138.87.172"
+// #define _PORT "6010"
 
 //接收兄弟线程的消息队列
 //设置套接字 把接收的信息发送给服务器
@@ -37,8 +37,9 @@
 //r_msgid 消息队列键值
 void *pthread_sen()
 {
-    char *M_argv[] = {"192.168.31.225", "10000"};
-    const char *M_IP = "192.168.31.225";
+    // const char *M_IP = "192.168.31.225";
+    // const char *M_IP = "8.130.71.224";
+    const char *M_IP = "43.138.87.172";
     const char *M_PORT = "10000";
     //socker套接字
     int sockfd;
@@ -85,7 +86,7 @@ void *pthread_sen()
             return;
         }
         //消息队列创建成功
-        printf("message queue OK!3333    r_msgid-----%d\n", r_msgid);
+        printf("message queue OK!\n2r_msgid:%d\n", r_msgid);
     }
     int i;
     char ch = '\n';
@@ -102,17 +103,14 @@ void *pthread_sen()
         //printf("get cond_host lock\n");
         //printf("receive p_extrac OK\n");
         //msgrcv(d_msgid, &msgbuf2, _NODE_HOST , 1L, 0);
-        msgrcv(r_msgid,&re_sock,20,1L, 0);
+        msgrcv(r_msgid,&re_sock,sizeof(re_sock),1L, 0);
 
         pthread_mutex_lock(&mutex_host);
         send(sockfd, &re_sock, sizeof(re_sock), 0);
-        printf("send date: ```````type:%d, date:%d%d%d%d\n",  re_sock.date[0], re_sock.date[1], re_sock.date[2], re_sock.date[3], re_sock.date[4]);
+        printf("send date: type:%d, date:%d%d%d%d\n",  re_sock.date[0], re_sock.date[1], re_sock.date[2], re_sock.date[3], re_sock.date[4]);
         pthread_mutex_unlock(&mutex_host);
         printf("sizeof: %d\n",sizeof(re_sock.date) );
         fwrite(re_sock.date, sizeof(re_sock), 5, fd);
-        // fputc(ch, fd);
-        printf("```````type:%d, date:%d%d%d%d\n",  re_sock.date[0], re_sock.date[1], re_sock.date[2], re_sock.date[3], re_sock.date[4]);
-        printf("-------------%d---------------\n", re_sock.date[1]);
         // pthread_mutex_lock(&mutex_host);
         // pthread_cond_wait(&cond_host, &mutex_host);
         
@@ -157,7 +155,7 @@ void  *pthread_extract()
             return;
         }
         //消息队列创建成功
-        printf("message queue OK!2222    r_msgid-----%d\n", r_msgid);
+        printf("message queue OK!\n1r_msgid-----%d\n", r_msgid);
     }
 /******************************************************************************************/
     
@@ -187,43 +185,35 @@ void  *pthread_extract()
             return;
         }
         //消息队列创建成功
-        printf("message queue OK!-^^^^^^^^^^^^^^^^^^d_msgid2:%d\n", d_msgid);
+        printf("message queue OK!\nd_msgid2:%d\n", d_msgid);
     }
     while (1)
     {
-       
-        
-        //printf("set mutex_host lock OK!\n");
         msgrcv(d_msgid, &msgbuf2, _NODE_HOST , 1L, 0);
-        // pthread_mutex_lock(&mutex_host);
+        //判断起始标志   $T00023%
+        if ('$' == msgbuf2.text[_SIGN_HEAD] && '%' == msgbuf2.text[_SIGN_END])
         //放到结构体
-        //re_ex.F_type = msgbuf2.text[1]; //D
-        //从数组提取到结构体
-        /**********************
-         * 下边那个发送也会使用结构体，但是结构体已经被锁住了，所以下边那个发送很有可能会出问题 在此标记
-         * ***********************/
-        // re_ex.date[_DATE1 - _DATE_HEAD] = msgbuf2.text[_DATE1];
-        // re_ex.date[_DATE2 - _DATE_HEAD] = msgbuf2.text[_DATE2];
-        // re_ex.date[_DATE3 - _DATE_HEAD] = msgbuf2.text[_DATE3];
-        // re_ex.date[_DATE4 - _DATE_HEAD] = msgbuf2.text[_DATE4];
-        //1426891!
-        re_ex.date[0] = msgbuf2.text[1] - '0';//4
-        re_ex.date[1] = msgbuf2.text[2] - '0';//2
-        re_ex.date[2] = msgbuf2.text[3] - '0';//6
-        re_ex.date[3] = msgbuf2.text[4] - '0';//8
-        re_ex.date[4] = msgbuf2.text[5] - '0';//9
-
-    printf("++++++++++========++++++++++++++++++++++%d+++%d\n", sizeof(re_ex.date)/sizeof(re_ex.date[0]), sizeof(re_ex.date));
-    
-        //把消息添加到消息队列中
-        re_ex.type = 1L;
-	    if(msgsnd(r_msgid,&re_ex, 20, 0) == -1)
         {
-		    perror("fail to msgsnd type1");
-		   // return 6;
-	    }
-        re_ex.type = 0;
-        printf("type:%d, date:%d%d%d%d\n",  re_ex.date[0], re_ex.date[1], re_ex.date[2], re_ex.date[3], re_ex.date[4]);
+            re_ex.F_type = msgbuf2.text[1]; //D
+            //从数组提取到结构体
+            re_ex.date[0] = msgbuf2.text[_DATE_HEAD + 0] - '0';//0
+            re_ex.date[1] = msgbuf2.text[_DATE_HEAD + 1] - '0';//0
+            re_ex.date[2] = msgbuf2.text[_DATE_HEAD + 2] - '0';//0
+            re_ex.date[3] = msgbuf2.text[_DATE_HEAD + 3] - '0';//2
+            re_ex.date[4] = msgbuf2.text[_DATE_HEAD + 4] - '0';//3
+
+            printf("quantity:%d\tsize:%d\n", sizeof(re_ex.date)/sizeof(re_ex.date[0]), sizeof(re_ex.date));
+
+            //把消息添加到消息队列中
+            re_ex.type = 1L;
+	        if(msgsnd(r_msgid,&re_ex, sizeof(re_ex), 0) == -1)
+            {
+		        perror("fail to msgsnd type1");
+		       // return 6;
+	        }
+            re_ex.type = 0;
+            printf("type:%c, date:%d%d%d%d%d\n", re_ex.F_type, re_ex.date[0], re_ex.date[1], re_ex.date[2], re_ex.date[3], re_ex.date[4]);
+        }
         //解锁  
     //     pthread_mutex_unlock(&mutex_host);
     //     printf("free mutex_host1\n");

@@ -239,7 +239,7 @@ static void io_handler(int sig, siginfo_t *info, void *context)
         // for (n = 0; n < _NODE_HOST; n++)
         //     printf("%c   ", imx_host[n]);
         // printf("]\n");
-        printf("read Byte:%d,  %s\n", ret, msgbuf.text);
+        printf("usart read Byte:%d,  %s\n", ret, msgbuf.text);
         ret = 0;
     }
     //读取并放入完毕 解锁并唤醒下一个用锁的

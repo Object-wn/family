@@ -22,25 +22,24 @@
 typedef struct receive
 {
       char type;//从消息队列接收消息时用于判断的消息类型
-      // char F_type;
+      char F_type; //数据标志位
       int date[_EXTRACT_STR_LEN];
 }REC;
 
 int do_client(int acceptfd)
 {
     REC rec;
-    printf("1111111\n");
+    printf("successfu locnnection\n");
     while (0 < recv(acceptfd, &rec, sizeof(rec), 0))
     {
-        printf("type:%d", rec.date[0]);
+        printf("type:%c", rec.F_type);
         switch(1)
         {
             case 1:
-                
-                printf("-------------%d%d%d%d\n", rec.date[1], rec.date[2], rec.date[3], rec.date[4]);
+                printf("date:%d%d%d%d%d\n", rec.date[0], rec.date[1], rec.date[2], rec.date[3], rec.date[4]);
         }
     }
-     printf("type:%d", rec.date[1]);
+     printf("type:%c\n", rec.F_type);
     printf("client exit\n");
     close(acceptfd);
     exit(EXIT_SUCCESS);
