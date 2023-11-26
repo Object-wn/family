@@ -16,13 +16,12 @@
 #include <arpa/inet.h>
 #include <signal.h>
 #include <unistd.h>
-#define _EXTRACT_STR_LEN 5
+#define _EXTRACT_STR_LEN 8 //2位预留位 1位标志位 5位数据位 
 
 //提取线程和发送线程--服务器
 typedef struct receive
 {
       char type;//从消息队列接收消息时用于判断的消息类型
-      char F_type; //数据标志位
       int date[_EXTRACT_STR_LEN];
 }REC;
 
@@ -30,16 +29,18 @@ int do_client(int acceptfd)
 {
     REC rec;
     printf("successfu locnnection\n");
+    // while (0 < recv(acceptfd, &rec, sizeof(rec), 0))
     while (0 < recv(acceptfd, &rec, sizeof(rec), 0))
     {
-        printf("type:%c", rec.F_type);
+        printf("type:%c\n", rec.date[2] + '0');
         switch(1)
         {
             case 1:
-                printf("date:%d%d%d%d%d\n", rec.date[0], rec.date[1], rec.date[2], rec.date[3], rec.date[4]);
+                //printf("date0-2:%d\n", rec.date[2]);
+                printf("date3-7:%d%d%d%d%d\n", rec.date[3], rec.date[4], rec.date[5], rec.date[6], rec.date[7]);
         }
     }
-     printf("type:%c\n", rec.F_type);
+     //printf("type:%c\n", rec.F_type);
     printf("client exit\n");
     close(acceptfd);
     exit(EXIT_SUCCESS);

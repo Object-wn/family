@@ -28,7 +28,7 @@ typedef unsigned int    u32;
 #define _HOST_SERVER 6
 #define _NODE_HOST 8
 #define _MSG_LEN _NODE_HOST*6
-#define _EXTRACT_STR_LEN 5 //5位数据位
+#define _EXTRACT_STR_LEN 8 //1位预留位 2位标志位 5位数据位 
 
 //数据位是从第几位开始的
 #define _DATE_HEAD 2
@@ -42,7 +42,7 @@ typedef unsigned int    u32;
 typedef struct receive
 {
       char type;//从消息队列接收消息时用于判断的消息类型
-      char F_type; //数据标志位
+      //char F_type; //数据标志位
       int date[_EXTRACT_STR_LEN];
 }REC;
 REC re_ex2;
@@ -111,6 +111,10 @@ void  * pthread_sen();
 int server_sock();
 
 
+int LCD_main(char *ch);
+static int fb_dev_init(void);
+static int freetype_init(const char *font, int angle);
+static void lcd_draw_character(int x, int y, const wchar_t *str, unsigned int color);
 
 
 #endif

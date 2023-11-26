@@ -37,6 +37,7 @@
 //r_msgid 消息队列键值
 void *pthread_sen()
 {
+    printf("[fork_receivec PS] in pthread_sen\n");
     // const char *M_IP = "192.168.31.225";
     // const char *M_IP = "8.130.71.224";
     const char *M_IP = "43.138.87.172";
@@ -86,10 +87,8 @@ void *pthread_sen()
             return;
         }
         //消息队列创建成功
-        printf("message queue OK!\n2r_msgid:%d\n", r_msgid);
+        printf("[fork_receivec PS] message queue OK!\n2r_msgid:%d\n", r_msgid);
     }
-    int i;
-    char ch = '\n';
     while(1)
     {
     id_r_sen = pthread_self();
@@ -103,13 +102,18 @@ void *pthread_sen()
         //printf("get cond_host lock\n");
         //printf("receive p_extrac OK\n");
         //msgrcv(d_msgid, &msgbuf2, _NODE_HOST , 1L, 0);
+        printf("---------------\n");
         msgrcv(r_msgid,&re_sock,sizeof(re_sock),1L, 0);
-
-        pthread_mutex_lock(&mutex_host);
+        printf("[fork_receivec PS] rmsgid re_sock: %d\n", sizeof(re_sock));
+        printf("[fork_receivec PS] 1send date: type:%c, date:%d%d%d%d%d\n",  re_sock.date[2] + '0', \
+                                    re_sock.date[3], re_sock.date[4], re_sock.date[5], re_sock.date[6], re_sock.date[7]);
+        // pthread_mutex_lock(&mutex_host);
+        // pthread_cond_wait(&cond_host, &mutex_host);
         send(sockfd, &re_sock, sizeof(re_sock), 0);
-        printf("send date: type:%d, date:%d%d%d%d\n",  re_sock.date[0], re_sock.date[1], re_sock.date[2], re_sock.date[3], re_sock.date[4]);
-        pthread_mutex_unlock(&mutex_host);
-        printf("sizeof: %d\n",sizeof(re_sock.date) );
+        printf("[fork_receivec PS] 2send date: type:%d, date:%d%d%d%d%d\n",  re_sock.date[2], \
+                                    re_sock.date[3], re_sock.date[4], re_sock.date[5], re_sock.date[6], re_sock.date[7]);        
+        // pthread_mutex_unlock(&mutex_host);
+        printf("[fork_receivec PS] sizeof: %d\n",sizeof(re_sock.date) );
         fwrite(re_sock.date, sizeof(re_sock), 5, fd);
         // pthread_mutex_lock(&mutex_host);
         // pthread_cond_wait(&cond_host, &mutex_host);
@@ -155,7 +159,7 @@ void  *pthread_extract()
             return;
         }
         //消息队列创建成功
-        printf("message queue OK!\n1r_msgid-----%d\n", r_msgid);
+        printf("[fork_receivec PE] message queue OK!\n1r_msgid-----%d\n", r_msgid);
     }
 /******************************************************************************************/
     
@@ -163,7 +167,7 @@ void  *pthread_extract()
     
     id_r_dispose = pthread_self();
     REC re_ex;//放到消息队列的数据
-    printf("PX_OK\n");
+    printf("[fork_receivec PE] PX_OK\n");
  //获取消息队键值用来发送
     if (0 > (d_key = ftok("/tmp", 'h')))
     {
@@ -185,25 +189,31 @@ void  *pthread_extract()
             return;
         }
         //消息队列创建成功
-        printf("message queue OK!\nd_msgid2:%d\n", d_msgid);
+        printf("[fork_receivec PE] message queue OK!\nd_msgid2:%d\n", d_msgid);
     }
     while (1)
     {
         msgrcv(d_msgid, &msgbuf2, _NODE_HOST , 1L, 0);
+         LCD_main(msgbuf2.text);
+        // pthread_mutex_lock(&mutex_host);
         //判断起始标志   $T00023%
         if ('$' == msgbuf2.text[_SIGN_HEAD] && '%' == msgbuf2.text[_SIGN_END])
         //放到结构体
         {
-            re_ex.F_type = msgbuf2.text[1]; //D
+            //re_ex.F_type = msgbuf2.text[1]; //D
             //从数组提取到结构体
-            re_ex.date[0] = msgbuf2.text[_DATE_HEAD + 0] - '0';//0
-            re_ex.date[1] = msgbuf2.text[_DATE_HEAD + 1] - '0';//0
-            re_ex.date[2] = msgbuf2.text[_DATE_HEAD + 2] - '0';//0
-            re_ex.date[3] = msgbuf2.text[_DATE_HEAD + 3] - '0';//2
-            re_ex.date[4] = msgbuf2.text[_DATE_HEAD + 4] - '0';//3
+            re_ex.date[0] = 0; //预留位
+            re_ex.date[1] = 0;
+            re_ex.date[2] = msgbuf2.text[_SIGN_HEAD + 1] - '0';//H - 0
+            re_ex.date[3] = msgbuf2.text[_DATE_HEAD + 0] - '0';//0
+            re_ex.date[4] = msgbuf2.text[_DATE_HEAD + 1] - '0';//0
+            re_ex.date[5] = msgbuf2.text[_DATE_HEAD + 2] - '0';//0
+            re_ex.date[6] = msgbuf2.text[_DATE_HEAD + 3] - '0';//2
+            re_ex.date[7] = msgbuf2.text[_DATE_HEAD + 4] - '0';//3
 
-            printf("quantity:%d\tsize:%d\n", sizeof(re_ex.date)/sizeof(re_ex.date[0]), sizeof(re_ex.date));
-
+            printf("[fork_receivec PE] quantity:%d\tsize:%d\n", sizeof(re_ex.date)/sizeof(re_ex.date[0]), sizeof(re_ex.date));
+            printf("[fork_receivec PE] re_ex sizeof: %d\n", sizeof(re_ex));
+            LCD_main(msgbuf2.text ); //传入数组大小，复制数组到宽数组中
             //把消息添加到消息队列中
             re_ex.type = 1L;
 	        if(msgsnd(r_msgid,&re_ex, sizeof(re_ex), 0) == -1)
@@ -212,12 +222,15 @@ void  *pthread_extract()
 		       // return 6;
 	        }
             re_ex.type = 0;
-            printf("type:%c, date:%d%d%d%d%d\n", re_ex.F_type, re_ex.date[0], re_ex.date[1], re_ex.date[2], re_ex.date[3], re_ex.date[4]);
-        }
-        //解锁  
-    //     pthread_mutex_unlock(&mutex_host);
-    //     printf("free mutex_host1\n");
-    //    pthread_cond_signal(&cond_host);
+           // printf("[fork_receivec PE] type:%c, date:%d%d%d%d%d\n", re_ex.F_type, re_ex.date[0], re_ex.date[1], re_ex.date[2], re_ex.date[3], re_ex.date[4]);
+        }   printf("[fork_receivec PE] type:%d, date:%d%d%d%d%d%d\n", re_ex.date[2], re_ex.date[3], \
+                                            re_ex.date[4], re_ex.date[4], re_ex.date[5], re_ex.date[6], re_ex.date[7]);
+       
+        //解锁 
+        // pthread_cond_signal(&cond_host);
+        // pthread_mutex_unlock(&mutex_host);
+        // printf("[fork_receivec PE] free mutex_host1\n");
+       
 
 
     }
@@ -228,7 +241,7 @@ void  *pthread_extract()
 void fork_sen()
 {
    
-    printf("input sen OK\n");
+    printf("[fork_receivec] input sen OK\n");
     pid_receive = getpid();
     u8 R = 0;
     //线程初始化
