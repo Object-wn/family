@@ -110,11 +110,11 @@ int Usart_main();
 void  * pthread_sen();
 int server_sock();
 
-
+int LCD_Init();
 int LCD_main(char *ch);
-static int fb_dev_init(void);
-static int freetype_init(const char *font, int angle);
-static void lcd_draw_character(int x, int y, const wchar_t *str, unsigned int color);
+int fb_dev_init(void);
+int freetype_init(const char *font, int angle);
+void lcd_draw_character(int x, int y, const wchar_t *str, unsigned int color);
 
 
 #endif

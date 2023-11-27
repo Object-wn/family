@@ -14,8 +14,8 @@ main.o :main.c fork_receive.o fork_dispose.o fork_usart.o  LCD_free.o
 server.o : server.c
 	$(CC2) -o $@  $^ $(C_PATH) 
 
-fork_receive.o : fork_receive.c
-	$(CC) -c $< -o $@
+fork_receive.o : fork_receive.c 
+	$(CC) -c $< -o $@  $(FREE)
 fork_usart.o : fork_usart.c
 	$(CC) -c $< -o $@
 fork_dispose.o : fork_dispose.c

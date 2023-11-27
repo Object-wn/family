@@ -38,7 +38,7 @@ static int fd = -1;
 static FT_Library library;
 static FT_Face face;
 
-static int fb_dev_init(void)
+int fb_dev_init(void)
 {
     struct fb_var_screeninfo fb_var;
     struct fb_fix_screeninfo fb_fix;
@@ -70,7 +70,7 @@ static int fb_dev_init(void)
     return 0;
 }
 
-static int freetype_init(const char *font, int angle)
+ int freetype_init(const char *font, int angle)
 {
     FT_Error    error;//错误对象
     FT_Vector   pen; //xy坐标
@@ -114,7 +114,7 @@ static int freetype_init(const char *font, int angle)
     return 0;
 }
 
-static void lcd_draw_character(int x, int y, const wchar_t *str, unsigned int color)
+void lcd_draw_character(int x, int y, const wchar_t *str, unsigned int color)
 {
     unsigned short rgb565_color = argb8888_to_rgb565(color);
     FT_GlyphSlot slot = face->glyph; //插槽 字体的处理结果保存在这
@@ -188,13 +188,9 @@ static void lcd_draw_character(int x, int y, const wchar_t *str, unsigned int co
     }
 }
 
-int LCD_main(char *ch)
+
+int LCD_Init()
 {
-   wchar_t wch[8];
-   int i = 0;
-   for(i = 0; i < 8; i++)
-    wch[i] = ch[i];
-    /* LCD Init */
     if (fb_dev_init())
     {
         exit(EXIT_FAILURE);
@@ -204,18 +200,59 @@ int LCD_main(char *ch)
     {
         exit(EXIT_FAILURE);
     }
+    /* 显示中文 */
+    int y = height * 0.15;
+    lcd_draw_character(50, 100, L"湿度", 0x9900FF);
+    lcd_draw_character(50, y+100, L"温度", 0x9900FF);
+}
+
+int LCD_Exit()
+{
+    FT_Done_Face(face);
+    FT_Done_FreeType(library);
+    munmap(screen_base, screen_size);
+    close(fd);
+    exit(EXIT_SUCCESS);
+}
+
+
+int LCD_main(char *ch)
+{
+   wchar_t wch[3];
+   char wh[3];
+   wh[0] = ch[4];
+   wh[1] = ch[5];
+   wh[2] = ch[6];
+   int i = 0;
+   //$T00023%
+    wch[0] = wh[0];
+    wch[1] = wh[1];
+    wch[2] = wh[2];
+//    for(i = 0; i < 8; i++)
+//     wch[i] = ch[i];
+    /* LCD Init */
+    // if (fb_dev_init())
+    // {
+    //     exit(EXIT_FAILURE);
+    // }
+    //  /* freetype init */
+    // if (freetype_init("/home/root/zi/STSONG.TTF", 0))
+    // {
+    //     exit(EXIT_FAILURE);
+    // }
 
     /* 显示中文 */
     int y = height * 0.15;
    
-    //lcd_draw_character(50, y+100, L"实验楼B401", 0x9900FF);
+    lcd_draw_character(50, 100, L"湿度", 0x9900FF);
+    lcd_draw_character(50, y+100, L"温度", 0x9900FF);
     switch (ch[1])
     {
         case 'H':
-             lcd_draw_character(50, 100, wch,  0x9900FF);
+             lcd_draw_character(150, 100, wch,  0x9900FF);
              break;
         case 'T':
-             lcd_draw_character(50, y+100, wch,  0x9900FF);
+             lcd_draw_character(150, y+100, wch,  0x9900FF);
              break;
     }
 

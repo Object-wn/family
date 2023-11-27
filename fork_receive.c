@@ -115,6 +115,7 @@ void *pthread_sen()
         // pthread_mutex_unlock(&mutex_host);
         printf("[fork_receivec PS] sizeof: %d\n",sizeof(re_sock.date) );
         fwrite(re_sock.date, sizeof(re_sock), 5, fd);
+        
         // pthread_mutex_lock(&mutex_host);
         // pthread_cond_wait(&cond_host, &mutex_host);
         
@@ -138,7 +139,8 @@ struct msg msgbuf2;
 
 void  *pthread_extract()
 {
-    
+    wchar_t wch[3], Holdwch[3], Toldwch[3];
+    LCD_Init();
      if (0 > (e_key = ftok("/lib", 'a')))
     {
         perror("ftok error");
@@ -160,11 +162,7 @@ void  *pthread_extract()
         }
         //消息队列创建成功
         printf("[fork_receivec PE] message queue OK!\n1r_msgid-----%d\n", r_msgid);
-    }
-/******************************************************************************************/
-    
-
-    
+    }    
     id_r_dispose = pthread_self();
     REC re_ex;//放到消息队列的数据
     printf("[fork_receivec PE] PX_OK\n");
@@ -193,9 +191,41 @@ void  *pthread_extract()
     }
     while (1)
     {
+        
+        //接收数据
         msgrcv(d_msgid, &msgbuf2, _NODE_HOST , 1L, 0);
-         LCD_main(msgbuf2.text);
-        // pthread_mutex_lock(&mutex_host);
+        //马上要显示的是wch，设置数据
+        wch[0] = msgbuf2.text[4];
+        wch[1] = msgbuf2.text[5];
+        wch[2] = msgbuf2.text[6];
+        //lcd_draw_character(50, 100, L"湿度", 0x9900FF);
+        
+        printf("++++++++++++++++++++++++%s\n", msgbuf2.text);
+        printf("------------------------%Ls\n", wch);
+        
+        switch (msgbuf2.text[_SIGN_HEAD + 1])
+    {
+        case 'H':
+            printf("========================%c\n", msgbuf2.text[_SIGN_HEAD + 1]);
+            //刷白
+            lcd_draw_character(150, 100, Holdwch,  0xFFFFFF);
+            
+            lcd_draw_character(150, 100, wch,  0x9900FF);
+             //保存当前的wch 用来刷白
+             memcpy(Holdwch, wch, sizeof(wch));
+             break;
+        case 'T':
+            printf("___________________________%c\n", msgbuf2.text[_SIGN_HEAD + 1]);
+            //刷白
+            lcd_draw_character(150, 175, Toldwch,  0xFFFFFF);
+            lcd_draw_character(150, 175, wch,  0x9900FF);
+             //保存当前的wch 用来刷白
+            memcpy(Toldwch, wch, sizeof(wch));
+             break;
+    }
+        //显示
+        //lcd_draw_character(150, 100, wch,  0x9900FF);
+
         //判断起始标志   $T00023%
         if ('$' == msgbuf2.text[_SIGN_HEAD] && '%' == msgbuf2.text[_SIGN_END])
         //放到结构体
@@ -213,7 +243,7 @@ void  *pthread_extract()
 
             printf("[fork_receivec PE] quantity:%d\tsize:%d\n", sizeof(re_ex.date)/sizeof(re_ex.date[0]), sizeof(re_ex.date));
             printf("[fork_receivec PE] re_ex sizeof: %d\n", sizeof(re_ex));
-            LCD_main(msgbuf2.text ); //传入数组大小，复制数组到宽数组中
+            //LCD_main(msgbuf2.text ); //传入数组大小，复制数组到宽数组中
             //把消息添加到消息队列中
             re_ex.type = 1L;
 	        if(msgsnd(r_msgid,&re_ex, sizeof(re_ex), 0) == -1)
@@ -241,6 +271,7 @@ void  *pthread_extract()
 void fork_sen()
 {
    
+    
     printf("[fork_receivec] input sen OK\n");
     pid_receive = getpid();
     u8 R = 0;
