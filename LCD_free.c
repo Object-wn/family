@@ -20,7 +20,7 @@
 #include FT_FREETYPE_H
 
 #define FB_DEV "/dev/fb0" //LCD设备
-
+#define _TYPEDACE "/home/root/zi/STSONG.TTF"
 #define argb8888_to_rgb565(color) ({ \
                 unsigned int temp = (color); \
                 ((temp & 0xF80000UL) >> 8) | \
@@ -109,7 +109,7 @@ int fb_dev_init(void)
     //setting
     FT_Set_Transform(face, &matrix, &pen);
     //字体大小
-    FT_Set_Pixel_Sizes(face, 50, 0);
+    FT_Set_Pixel_Sizes(face, 40, 0);
 
     return 0;
 }
@@ -196,14 +196,20 @@ int LCD_Init()
         exit(EXIT_FAILURE);
     }
      /* freetype init */
-    if (freetype_init("/home/root/zi/STSONG.TTF", 0))
+    if (freetype_init(_TYPEDACE, 0))
     {
         exit(EXIT_FAILURE);
     }
     /* 显示中文 */
     int y = height * 0.15;
-    lcd_draw_character(50, 100, L"湿度", 0x9900FF);
-    lcd_draw_character(50, y+100, L"温度", 0x9900FF);
+    lcd_draw_character(L_x - 100, 100, L"温度", 0x9900FF);
+    lcd_draw_character(L_x - 100, y+100, L"湿度", 0x9900FF);
+    lcd_draw_character(L_x - 100, y+200, L"CO2", 0x9900FF);
+    lcd_draw_character(L_x - 100, y+300, L"加湿", 0x9900FF);
+    lcd_draw_character(R_x - 150, 100, L"光照", 0x9900FF);
+    lcd_draw_character(R_x - 150, y+100, L"人感", 0x9900FF);
+    lcd_draw_character(R_x - 150, y+200, L"LED", 0x9900FF);
+    lcd_draw_character(R_x - 150, y+300, L"电机", 0x9900FF);
 }
 
 int LCD_Exit()

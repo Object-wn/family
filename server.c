@@ -16,6 +16,7 @@
 #include <arpa/inet.h>
 #include <signal.h>
 #include <unistd.h>
+#include <time.h>
 #define _EXTRACT_STR_LEN 8 //2位预留位 1位标志位 5位数据位 
 
 //提取线程和发送线程--服务器
@@ -25,20 +26,51 @@ typedef struct receive
       int date[_EXTRACT_STR_LEN];
 }REC;
 
+/*
+struct tm t;
+    time_t sec;
+
+    sec = time(NULL);
+    if (sec == -1)
+    {
+        perror("time error");
+        return 1;
+    }
+
+    localtime_r(&sec, &t);
+    printf(" %d year%d month%d day %d:%d:%d\n",
+    t.tm_year + 1900, t.tm_mon, t.tm_mday,
+    t.tm_hour, t.tm_min, t.tm_sec);
+*/
+
 int do_client(int acceptfd)
 {
+    //保存时间数据
+    time_t time_date = time(NULL);
+    struct tm local_t;
     REC rec;
     printf("successfu locnnection\n");
     // while (0 < recv(acceptfd, &rec, sizeof(rec), 0))
     while (0 < recv(acceptfd, &rec, sizeof(rec), 0))
     {
+        //获取当前时间
+        //localtime_r(&time_date, &local_t);
         printf("type:%c\n", rec.date[2] + '0');
+        // printf("1 %d year%d month%d day %d:%d:%d\n",  //本地时间
+        // local_t.tm_year + 1900, local_t.tm_mon + 1, local_t.tm_mday,
+        // local_t.tm_hour, local_t.tm_min, local_t.tm_sec);
         switch(1)
         {
             case 1:
+            send(acceptfd, "O", 1, 0);
+            localtime_r(&time_date, &local_t);
+            printf("time:  %d year%d month%d day %d:%d:%d\n",  //本地时间
+                local_t.tm_year + 1900, local_t.tm_mon + 1, local_t.tm_mday,
+                local_t.tm_hour, local_t.tm_min, local_t.tm_sec);
                 //printf("date0-2:%d\n", rec.date[2]);
-                printf("date3-7:%d%d%d%d%d\n", rec.date[3], rec.date[4], rec.date[5], rec.date[6], rec.date[7]);
+            printf("date3-7:%d%d%d%d%d\n", rec.date[3], rec.date[4], rec.date[5], rec.date[6], rec.date[7]);
         }
+        time_date = time(NULL);
     }
      //printf("type:%c\n", rec.F_type);
     printf("client exit\n");

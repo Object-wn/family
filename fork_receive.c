@@ -27,9 +27,12 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <sys/socket.h>
+#include <signal.h>
 
 // #define _IP_SER "43.138.87.172"
 // #define _PORT "6010"
+
+
 
 //接收兄弟线程的消息队列
 //设置套接字 把接收的信息发送给服务器
@@ -38,6 +41,7 @@
 void *pthread_sen()
 {
     printf("[fork_receivec PS] in pthread_sen\n");
+     int flag = 1;
     // const char *M_IP = "192.168.31.225";
     // const char *M_IP = "8.130.71.224";
     const char *M_IP = "43.138.87.172";
@@ -46,21 +50,28 @@ void *pthread_sen()
     int sockfd;
     struct sockaddr_in serveraddr;
     FILE *fd;
+    char F[1];
+
+    //服务器端退出，忽略SIGPIPE信号，保证本地不会因服务器端退出而导致本地退出
+    struct sigaction sa;
+    sa.sa_handler = SIG_IGN;
+    sigaction( SIGPIPE, &sa, 0 );
+
     if ((fd = fopen("./t.txt", "wb")) == NULL)
     {
         printf("fopen error\n");
-        return ;
+        //return ;
     }
      if (0 > (e_key = ftok("/lib", 'a')))
     {
         perror("ftok error");
-        return;
+        //return;
     }
      //打开套接字
     if (0 > (sockfd = socket(AF_INET, SOCK_STREAM, 0)))
     {
         perror("socker error");
-        return ;
+        //return ;
     }
     serveraddr.sin_family = AF_INET;
     serveraddr.sin_addr.s_addr = inet_addr(M_IP);
@@ -70,8 +81,9 @@ void *pthread_sen()
     if (connect(sockfd, (struct sockaddr*)&serveraddr, sizeof(serveraddr)) < 0)
     {
         perror("connect error");
-        return ;
+        //return ;
     }
+     
 
     //创建消息队列， 不存在则创建否则打开操作 | 不存在创建 否则产生错误返回
     if (-1 == (r_msgid = msgget(e_key, IPC_CREAT | IPC_EXCL | 0666))  )
@@ -84,14 +96,36 @@ void *pthread_sen()
         else
         {
             perror("fork_dis > message > magget error");
-            return;
+            //return;
         }
         //消息队列创建成功
         printf("[fork_receivec PS] message queue OK!\n2r_msgid:%d\n", r_msgid);
     }
     while(1)
     {
-    id_r_sen = pthread_self();
+        //监测网络连接
+        if (0 < recv(sockfd, &F, sizeof(F), MSG_DONTWAIT));
+        
+            //刷白网络连接判断标识
+            lcd_draw_character(L_x + 300, L_1_y, L"NO",  0xFFFFFF);
+            lcd_draw_character(L_x + 300, L_1_y, L"Y",  0xFFFFFF);
+        //if (getsockopt(sockfd, SOL_SOCKET, SO_KEEPALIVE, &flag, (unsigned int *)sizeof(int)) < 0);
+        if ('O' != F[0])
+        {
+            //无连接
+            
+            lcd_draw_character(L_x + 300, L_1_y, L"NO",  0x9900FF);
+            printf("########################################  NO\n");
+            F[0] = '1';
+        }
+        if ('O' == F[0])
+        {
+             lcd_draw_character(L_x+300, L_1_y, L"Y",  0x9900FF);
+             printf("########################################  Y\n");
+             F[0] = '1';
+        }
+        
+        id_r_sen = pthread_self();
 //sleep(1);
      //pthread_mutex_lock(&mutex_host);
         //printf("------------get mutex_node lock1\n");
@@ -198,27 +232,21 @@ void  *pthread_extract()
         wch[0] = msgbuf2.text[4];
         wch[1] = msgbuf2.text[5];
         wch[2] = msgbuf2.text[6];
-        //lcd_draw_character(50, 100, L"湿度", 0x9900FF);
-        
-        printf("++++++++++++++++++++++++%s\n", msgbuf2.text);
-        printf("------------------------%Ls\n", wch);
         
         switch (msgbuf2.text[_SIGN_HEAD + 1])
     {
-        case 'H':
-            printf("========================%c\n", msgbuf2.text[_SIGN_HEAD + 1]);
+        case 'T':
             //刷白
-            lcd_draw_character(150, 100, Holdwch,  0xFFFFFF);
+            lcd_draw_character(L_x, L_1_y, Holdwch,  0xFFFFFF);
             
-            lcd_draw_character(150, 100, wch,  0x9900FF);
+            lcd_draw_character(L_x, L_1_y, wch,  0x9900FF);
              //保存当前的wch 用来刷白
              memcpy(Holdwch, wch, sizeof(wch));
              break;
-        case 'T':
-            printf("___________________________%c\n", msgbuf2.text[_SIGN_HEAD + 1]);
+        case 'H':
             //刷白
-            lcd_draw_character(150, 175, Toldwch,  0xFFFFFF);
-            lcd_draw_character(150, 175, wch,  0x9900FF);
+            lcd_draw_character(L_x, L_2_y, Toldwch,  0xFFFFFF);
+            lcd_draw_character(L_x, L_2_y, wch,  0x9900FF);
              //保存当前的wch 用来刷白
             memcpy(Toldwch, wch, sizeof(wch));
              break;
@@ -303,6 +331,6 @@ void fork_sen()
         perror("pthread_join");
         return ;
     }
-
+    LCD_Exit();
 }
 

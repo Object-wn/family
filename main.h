@@ -99,7 +99,23 @@ struct msg
 
 //socker信息
   REC re_sock;
-
+/*
+LCD显示位置
+温度     date   光照 date
+湿度     date   人感 date
+二氧化碳 date   LED date
+加湿     date   电机 date
+*/
+#define L_x 150
+#define R_x 470
+#define L_1_y 100
+#define L_2_y 175
+#define L_3_y
+#define L_4_y
+#define R_1_y 
+#define R_2_y 
+#define R_3_y 
+#define R_4_y 
 /***********************
  * 全局外部函数
 ************************/
@@ -111,6 +127,7 @@ void  * pthread_sen();
 int server_sock();
 
 int LCD_Init();
+int LCD_Exit();
 int LCD_main(char *ch);
 int fb_dev_init(void);
 int freetype_init(const char *font, int angle);
